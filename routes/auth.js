@@ -68,19 +68,29 @@ router.post('/login', async function (req, res, next) {
 router.get('/me', CheckLogin, function (req, res, next) {
     res.send(req.user)
 })
-
-const changePasswordHandler = async function (req, res, next) {
+router.post('/changepassword', CheckLogin, async function (req, res) {
     try {
         let { oldPassword, newPassword } = req.body;
-        let result = await userController.ChangePassword(req.user._id, oldPassword, newPassword);
+
+        // check input
+        if (!oldPassword || !newPassword) {
+            return res.status(400).send({
+                message: "Missing oldPassword or newPassword"
+            });
+        }
+
+        let result = await userController.ChangePassword(
+            req.user.id, // ✅ sửa ở đây
+            oldPassword,
+            newPassword
+        );
+
         res.send(result);
+
     } catch (error) {
         res.status(400).send({
             message: error.message
-        })
+        });
     }
-}
-
-router.post('/changepassword', CheckLogin, ChangePasswordValidator, validatedResult, changePasswordHandler)
-router.post('/change-password', CheckLogin, ChangePasswordValidator, validatedResult, changePasswordHandler)
+});
 module.exports = router
